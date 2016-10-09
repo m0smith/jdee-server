@@ -57,6 +57,35 @@
                     </descriptorRefs>
                 </configuration>
             </plugin>
+	    <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-dependency-plugin</artifactId>
+              <version>2.10</version>
+              <executions>
+		<execution>
+		  <id>test-classpath</id>
+		  <phase>generate-sources</phase>
+		  <goals>
+		    <goal>build-classpath</goal>
+		  </goals>
+		  <configuration>
+		    <outputFile>target/test.cp</outputFile>
+		    <includeScope>test</includeScope>
+		  </configuration>
+		</execution>
+		<execution>
+		  <id>compile-classpath</id>
+		  <phase>generate-sources</phase>
+		  <goals>
+		    <goal>build-classpath</goal>
+		  </goals>
+		  <configuration>
+		    <outputFile>target/compile.cp</outputFile>
+		    <includeScope>compile</includeScope>
+		  </configuration>
+		</execution>
+              </executions>
+	    </plugin>
         </plugins>
     </build>
 </project>
