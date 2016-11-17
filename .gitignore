@@ -4,4 +4,6 @@
 .settings
 *~
 prj.el
+*.class
+#.*#
 
