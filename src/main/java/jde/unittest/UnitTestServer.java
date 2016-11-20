@@ -36,16 +36,24 @@ import java.lang.reflect.Method;
 
 public class UnitTestServer {
 
-    public static List<?> unitTest (String[] args) throws Exception {
-        DynamicClassLoader dcl = new DynamicClassLoader();
-        Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServer.class.getName());
-        Object uts = clazz.newInstance();
-        Method method = clazz.getMethod("runJUnitTest", String.class);
-        int argCount = args.length;
+    public static int unitTest (String[] args) {
+        try{
+            int argCount = args.length;
+            String fqn = args[argCount - 1];
+            System.out.println("Running a test:" + fqn);
+            DynamicClassLoader dcl = new DynamicClassLoader();
+            Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServer.class.getName());
+            Object uts = clazz.newInstance();
+            Method method = clazz.getMethod("runJUnitTest", String.class);
 
-        String fqn = args[argCount - 1];
 
-        return (List<?>) method.invoke(uts, fqn);
+            List<?> rtnval = (List<?>) method.invoke(uts, fqn);
+            System.out.println("exit code:" + rtnval.size());
+            return rtnval.size();
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+            return -1;
+        }
     }
         
     public List<Failure> runJUnitTest (String fqn) throws Exception {
@@ -55,8 +63,10 @@ public class UnitTestServer {
         List<Failure> failures = result.getFailures();
         for(Failure failure : failures) {
             System.out.println (failure);
-        failure.getException().printStackTrace();
+            failure.getException().printStackTrace();
         }
+        System.out.println("Tests run:" + result.getRunCount());
+        System.out.println("Results :" + failures);
         return failures;
     }
 
