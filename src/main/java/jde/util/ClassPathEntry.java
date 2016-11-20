@@ -143,7 +143,8 @@ abstract class ClassPathEntry {
         if (! isLoaded()) {
             load();
         } // end of if (! isLoaded())
-        
+        System.out.println ("UFQN:" + unqualifiedName);
+        System.out.println ("UFQN->:" + nameToClassMap.getAsList(unqualifiedName));
         return nameToClassMap.getAsList(unqualifiedName);
     }
 
@@ -163,6 +164,10 @@ abstract class ClassPathEntry {
      */
     public void setLoaded(boolean loaded) {
         this.loaded = loaded;
+    }
+
+    public String toString() {
+        return nameToClassMap.toString();
     }
 }// ClassPathEntry
 

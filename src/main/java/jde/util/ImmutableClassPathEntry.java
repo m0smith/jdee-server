@@ -85,5 +85,16 @@ class ImmutableClassPathEntry extends ClassPathEntry {
         throws IOException {
         return delegate.getClassNames(unqualifiedName);
     }
+
+    /**
+     * Get a string representation of this object.
+     * 
+     * @return a string representation of this object.
+     * 
+     * @see java.lang.Object#toString
+     */
+    public final String toString() {
+         return delegate.toString();
+    }
     
 }// ImmutableClassPathEntry

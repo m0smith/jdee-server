@@ -26,10 +26,41 @@ package jde.unittest;
 import org.junit.runner.Result;
 import org.junit.runner.Request;
 import org.junit.runner.JUnitCore;
- 
+import org.junit.runner.notification.Failure;
+
+import jde.util.DynamicClassLoader;
+
+import java.util.List;
+
+import java.lang.reflect.Method;
+
 public class UnitTestServer {
 
-    public void unitTest (Class clazz){ //repo, pm, pmfile, scriptIn, method, parserName) {    
+    public static List<?> unitTest (String[] args) throws Exception {
+        DynamicClassLoader dcl = new DynamicClassLoader();
+        Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServer.class.getName());
+        Object uts = clazz.newInstance();
+        Method method = clazz.getMethod("runJUnitTest", String.class);
+        int argCount = args.length;
+
+        String fqn = args[argCount - 1];
+
+        return (List<?>) method.invoke(uts, fqn);
+    }
+        
+    public List<Failure> runJUnitTest (String fqn) throws Exception {
+        Class<?> target = Class.forName(fqn);
+        Request request = Request.aClass(target);
+        Result result = new JUnitCore().run(request);
+        List<Failure> failures = result.getFailures();
+        for(Failure failure : failures) {
+            System.out.println (failure);
+        failure.getException().printStackTrace();
+        }
+        return failures;
+    }
+
+        //repo, pm, pmfile, scriptIn, method, parserName) {    
 	// String script = MalabarUtil.expandFile(scriptIn);
 	// def cached = lookInCache( pm, pmfile, { fecthProjectInfo(repo, pm, pmfile)});
 	// try{
@@ -44,11 +75,7 @@ public class UnitTestServer {
 	//     }
 
 	
-	String method = null;
-
-	Request request = Request.aClass(clazz);
-	Result result = new JUnitCore().run(request);
-	System.out.println (result.getFailures());
+    
 	//     log.fine "UnitTest "+ clazz.getName() + " ..."
 		
 	// 	if( method == null ) {
@@ -73,5 +100,4 @@ public class UnitTestServer {
 	// 	}
 	
 	
-    }
 }
