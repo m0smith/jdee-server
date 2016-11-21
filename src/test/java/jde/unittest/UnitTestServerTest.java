@@ -8,7 +8,6 @@ import static org.junit.Assert.*;
 public class UnitTestServerTest {
 
 
-    UnitTestServer target = new UnitTestServer();
 
     public static void main(String[] args) {
         UnitTestServer.unitTest(args);
@@ -18,15 +17,9 @@ public class UnitTestServerTest {
     
     @Test
     public void testUnitTestRunner() throws Exception {
-        System.out.println ("Statrig unt tes");
-        try {
 
-            int rtnval = target.unitTest(new String[] {"bob","fred","jde.juci.SymbolTest"});
-            assertEquals("No failures are expected:", 0 , rtnval);
-        }
-        catch (Throwable ex) {
-            ex.printStackTrace();
-        }
+        int rtnval = UnitTestServer.unitTest(new String[] {"bob","fred","jde.juci.SymbolTest"}, "nested >> ");
+        assertEquals("No failures are expected:", 0 , rtnval);
 
     }
 

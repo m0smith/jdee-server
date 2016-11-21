@@ -41,7 +41,7 @@ public class SymbolTest {
     }
 
     @Test
-    public void testJava2Elisp2() {
+    public void testJava2Elisp2() throws Exception {
         assertEquals("jdee-foo-call-left-right", Symbol.java2Elisp("jdee.foo.Call.leftRight"));
     }
 
