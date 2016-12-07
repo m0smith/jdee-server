@@ -23,60 +23,78 @@
 
 package jde.unittest;
 
-import org.junit.runner.Result;
-import org.junit.runner.Request;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.notification.Failure;
-
 import jde.util.DynamicClassLoader;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 
-import org.junit.runner.notification.RunListener;
-import org.junit.runner.Description;
-
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class UnitTestServer {
 
+    private final static Logger LOGGER = Logger.getLogger(UnitTestServer.class.getName());
+    
     String prefix = "";
 
     public UnitTestServer() {}
 
     public UnitTestServer(String prefix) {
         this.prefix = prefix;
+        LOGGER.setLevel(Level.INFO);
     }
     
     
     public static int unitTest (String[] args) {
+        List<String> argl = Arrays.asList(args);
+        argl.set(2, "...");
+        LOGGER.info("Running unit test with args:" + argl);
+        Logger jdeLogger = Logger.getLogger("jde");
+        Logger log = LogManager.getLogManager().getLogger("");
+
         try{
             int argCount = args.length;
-            String fqn = args[argCount - 1];
+            String fqn = args[argCount - 2];
+            String level = args[argCount - 1];
+
+            jdeLogger.setLevel(Level.parse(level));
+            
+            for (Handler h : log.getHandlers()) {
+                LOGGER.info("Setting " + level + " for handler " + h);
+                h.setLevel(Level.parse(level));
+            }
+
             //System.out.println("Running a test:" + fqn);
             DynamicClassLoader dcl = new DynamicClassLoader();
-            Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServer.class.getName());
+            Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServerJunit.class.getName());
             Object uts = clazz.newInstance();
-            Method method = clazz.getMethod("runJUnitTest", String.class);
+            Method method = clazz.getMethod("runJUnitTest", DynamicClassLoader.class, String.class);
 
 
-            List<?> rtnval = (List<?>) method.invoke(uts, fqn);
+            List<?> rtnval = (List<?>) method.invoke(uts, dcl, fqn);
             return rtnval.size();
         } catch (Throwable ex) {
             ex.printStackTrace();
             return -1;
+        } finally {
+
         }
     }
 
     public static int unitTest (String[] args, String prefix) {
+        LOGGER.info("Running unit test with prefix:" + prefix + " args:" + Arrays.asList(args));
         try{
             int argCount = args.length;
             String fqn = args[argCount - 1];
             //System.out.println("Running a test:" + fqn);
             DynamicClassLoader dcl = new DynamicClassLoader();
-            Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServer.class.getName());
+            Class<UnitTestServer> clazz = dcl.loadClass(UnitTestServerJunit.class.getName());
             Constructor<UnitTestServer> cinit = clazz.getConstructor(String.class);
             Object uts = cinit.newInstance(prefix);
             Method method = clazz.getMethod("runJUnitTest", String.class);
@@ -90,51 +108,6 @@ public class UnitTestServer {
         }
     }
         
-    public List<Failure> runJUnitTest (String fqn) throws Exception {
-        Class<?> target = Class.forName(fqn);
-        Request request = Request.aClass(target);
-        JUnitCore core = new JUnitCore();
-        JUnitListener listener = new JUnitListener();
-        core.addListener(new JUnitListener());
-        Result result = core.run(request);
-        
-        List<Failure> failures = result.getFailures();
-        for(Failure failure : failures) {
-            System.out.println (prefix + "  " + failure);
-            failure.getException().printStackTrace();
-        }
-      
-        System.out.println(prefix + "Results :" + failures);
-        System.out.println(prefix + "exit code:" + failures.size());
-
-        return failures;
-    }
-
-    private class JUnitListener extends RunListener {
-
-        @Override
-        public void testStarted(Description desc) {
-            // System.out.println(prefix + "Running hamster "+ desc.getDisplayName());
-        }
-
-        @Override
-        public void testRunStarted(Description desc) {
-            System.out.println(prefix + "Running "+ desc.getDisplayName());
-
-        }
-
-        @Override
-        public void testRunFinished(Result result) {
-            int total = result.getRunCount();
-            int skipped = result.getIgnoreCount();
-            int failed =  result.getFailureCount();
-            int erred  = 0;
-            System.out.printf("%sTests run: %d, Failures: %d, Errors: %d, Skipped: %d, Time elapsed: %s%n", prefix,total,failed, erred, skipped, result.getRunTime());
-
-
-        }
-
-    }
                                                 
         //repo, pm, pmfile, scriptIn, method, parserName) {    
 	// String script = MalabarUtil.expandFile(scriptIn);

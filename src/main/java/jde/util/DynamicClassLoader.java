@@ -18,7 +18,7 @@
  *    along with this program; if not, write to the Free Software
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-package jde.util;
+package jde.util; 
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import java.util.logging.Logger;
 
 /**
  * The class <code>DynamicClassLoader</code> extends the 
@@ -46,6 +47,8 @@ import java.util.zip.ZipFile;
  * @since jde2.2.8beta2
  */
 public class DynamicClassLoader extends ClassLoader {
+
+    private final static Logger LOGGER = Logger.getLogger(DynamicClassLoader.class.getName());
   
   /**
    * Class path.
@@ -79,7 +82,11 @@ public class DynamicClassLoader extends ClassLoader {
    *
    */
   public static final String CLASS_FILE_TYPE = "class";
-  
+
+  protected Class findClass(String argClassName) throws ClassNotFoundException {
+      return loadClass(argClassName);
+  }
+    
   /**
    * Loads a class information from the file system,
    * if it fails it tries Class.forName(argClassName)
@@ -89,6 +96,9 @@ public class DynamicClassLoader extends ClassLoader {
    * @exception ClassNotFoundException if the class cannot be found.
    */
   public Class loadClass(String argClassName) throws ClassNotFoundException {
+      return loadClass(argClassName, false);
+  }
+  public Class loadClass(String argClassName, boolean resolve ) throws ClassNotFoundException {
     File file;
     byte[] classBytes = null;
     Class c;
@@ -96,7 +106,7 @@ public class DynamicClassLoader extends ClassLoader {
     //Checking if the class belong to either java.* or javax.*
     if ((argClassName.startsWith("java.")) || 
         (argClassName.startsWith("javax."))) {
-      return Class.forName(argClassName);
+        return getParent().loadClass(argClassName);
     } // end of if ()
     
     //First convert the class name from java.lang.String to java/lang/String
@@ -162,7 +172,7 @@ public class DynamicClassLoader extends ClassLoader {
       return c;
     } else {
       try {
-        return Class.forName(argClassName);
+          return getParent().loadClass(argClassName);
       } catch (ClassNotFoundException e) {
         throw new ClassNotFoundException(argClassName);
       } // end of try-catch
@@ -172,14 +182,18 @@ public class DynamicClassLoader extends ClassLoader {
   private byte[] loadFile(File argFile) {
     byte[] b = null;
     InputStream in = null;
+    LOGGER.finest("Loading file:" + argFile);
     if (argFile.exists()) {
       try {
         in = new FileInputStream(argFile);
         b = read(in, (int)argFile.length());
+        LOGGER.finer("Loading file: found:" + argFile);
       } catch (FileNotFoundException e) {
         b = null;
+        LOGGER.finest("Loading file: FileNotFoundException:" + argFile);
       } catch (IOException e) {
         b = null;
+        LOGGER.finest("Loading file: IOException:" + argFile);
       } finally {
         try {
           in.close();
@@ -194,6 +208,7 @@ public class DynamicClassLoader extends ClassLoader {
   private byte[] loadFile(ZipFile argFile, String argClassName) {
     //zip and jar files seems to always be separated by a '/'
     argClassName = argClassName.replace(FILE_SEPARATOR.charAt(0), '/');
+    LOGGER.finest("Loading file:" + argClassName + " from:" + argFile.getName());
     byte[] b = null;
     ZipEntry ze;
     InputStream in;
@@ -202,6 +217,7 @@ public class DynamicClassLoader extends ClassLoader {
       if (ze != null) {
         in = argFile.getInputStream(ze);
         b = read(in, (int) ze.getSize());
+        LOGGER.finer("Loading file: found::" + argClassName + " from:" + argFile.getName());
       }
     } catch (IOException e) {
       b = null;
